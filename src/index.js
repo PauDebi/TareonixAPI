@@ -3,9 +3,14 @@ const express = require('express');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
+
 const sequelize = require('./config/database');
+const User = require('./models/user'); // Asegúrate de importar bien el modelo
+const Project = require('./models/project');
+
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
+const projectRoutes = require('./routes/Projects');
 
 const app = express();
 
@@ -16,6 +21,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/projects', projectRoutes);
 
 // Swagger documentation
 const swaggerOptions = {
@@ -48,6 +54,11 @@ const swaggerOptions = {
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
+
+User.hasMany(Project, { foreignKey: 'lider_id', as: 'projects' });
+Project.belongsTo(User, { foreignKey: 'lider_id', as: 'leader' });
+
+
 // Database sync and server start
 const PORT = process.env.PORT || 3000;
 
@@ -56,3 +67,4 @@ sequelize.sync().then(() => {
     console.log(`Server is running on port ${PORT}`);
   });
 });
+

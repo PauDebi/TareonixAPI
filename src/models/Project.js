@@ -17,13 +17,19 @@ const Project = sequelize.define('Project', {
   },
   lider_id: {
     type: DataTypes.UUID,
+    allowNull: true, // Puede ser null si no hay líder
     references: {
-      model: User,
+      model: 'users', // 👈 Usamos el nombre de la tabla, NO el modelo directamente
       key: 'id'
     }
   },
   createdAt: {
     type: DataTypes.DATE,
-    defaultValue: Data.now()
+    defaultValue: DataTypes.NOW
   }
+}, {
+  tableName: 'projects',
+  timestamps: false
 });
+
+module.exports = Project;
