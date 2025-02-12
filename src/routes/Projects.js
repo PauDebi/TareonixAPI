@@ -1,7 +1,8 @@
 const express = require("express");
 const {auth} = require("../middleware/auth");
-const Project = require('../models/User');
+const Project = require('../models/Project');
 const ProjectUser = require('../models/ProjectUser');
+const {Op} = require("sequelize");
 const router = express.Router();
 
 
@@ -45,7 +46,7 @@ router.post('/', auth, async (req, res) => {
             id: require('uuid').v4(), // Genera un UUID
             name,
             description,
-            lider_id: null,
+            lider_id: req.user.id,
             createdAt: new Date()
         });
 

@@ -7,6 +7,8 @@ const swaggerJsdoc = require('swagger-jsdoc');
 const sequelize = require('./config/database');
 const User = require('./models/user'); // Asegúrate de importar bien el modelo
 const Project = require('./models/project');
+const ProjectUser = require('./models/projectUser');
+require('./models/associations');
 
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
@@ -53,10 +55,6 @@ const swaggerOptions = {
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-
-
-User.hasMany(Project, { foreignKey: 'lider_id', as: 'projects' });
-Project.belongsTo(User, { foreignKey: 'lider_id', as: 'leader' });
 
 
 // Database sync and server start
