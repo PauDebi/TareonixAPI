@@ -3,19 +3,21 @@ const sequelize = require('../config/database');
 
 const DependsFromTask = sequelize.define('DependsFromTask', {
     dependent_task: {
-        type: DataTypes.UUID,
+        type: DataTypes.CHAR(36),
         references: {
-            model: Task,
+            model: 'Tasks',
             key: 'id'
         }
     },
     primary_task: {
-        type: DataTypes.UUID,
+        type: DataTypes.CHAR(36),
         references: {
-            model: Task,
+            model: 'Tasks',
             key: 'id'
         }
     }
-}, { primaryKey: ['dependent_task', 'primary_task'] });
+}, {
+    timestamps: true // Si deseas tener las columnas createdAt y updatedAt
+});
 
 module.exports = DependsFromTask;

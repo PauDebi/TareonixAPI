@@ -8,20 +8,12 @@ const TaskHistory = sequelize.define('TaskHistory', {
         primaryKey: true
     },
     user_id: {
-        type: DataTypes.UUID,
+        type: DataTypes.CHAR(36),
         allowNull: false,
-        references: {
-            model: User,
-            key: 'id'
-        }
     },
     task_id: {
-        type: DataTypes.UUID,
+        type: DataTypes.CHAR(36),
         allowNull: false,
-        references: {
-            model: Task,
-            key: 'id'
-        }
     },
     action: {
         type: DataTypes.STRING,
@@ -31,6 +23,9 @@ const TaskHistory = sequelize.define('TaskHistory', {
         type: DataTypes.DATE,
         allowNull: false
     }
+}, {
+    tableName: 'task_history',
+    timestamps: false
 });
 
 module.exports = TaskHistory;

@@ -5,14 +5,12 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 
 const sequelize = require('./config/database');
-const User = require('./models/user'); // Asegúrate de importar bien el modelo
-const Project = require('./models/project');
-const ProjectUser = require('./models/projectUser');
 require('./models/associations');
 
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const projectRoutes = require('./routes/Projects');
+const taskRoutes = require('./routes/Tareas');
 
 const app = express();
 
@@ -24,6 +22,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/tasks', taskRoutes);
 
 // Swagger documentation
 const swaggerOptions = {

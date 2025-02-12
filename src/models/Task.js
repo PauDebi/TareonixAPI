@@ -18,18 +18,16 @@ const Task = sequelize.define('Task', {
     project_id: {
         type: DataTypes.UUID,
         allowNull: false,
-        references: {
-            model: Project,
-            key: 'id'
-        }
     },
     assigned_user_id: {
         type: DataTypes.UUID,
-        references: {
-            model: User,
-            key: 'id'
-        }
+    },
+
+}
+    , {
+        tableName: 'tasks',
+        timestamps: false
     }
-});
+);
 
 module.exports = Task;
