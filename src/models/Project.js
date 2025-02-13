@@ -19,7 +19,7 @@ const Project = sequelize.define('Project', {
     type: DataTypes.UUID,
     allowNull: true, // Puede ser null si no hay líder
     references: {
-      model: 'users', // 👈 Usamos el nombre de la tabla, NO el modelo directamente
+      model: 'users',
       key: 'id'
     }
   },

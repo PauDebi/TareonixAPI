@@ -163,4 +163,67 @@ router.delete('/:id', auth, async (req, res) => {
     }
 });
 
+router.post('/asign-user-to/:id', auth, async (req, res) => {
+    try {
+        const { id } = req.params; // ID del proyecto
+        const userId = req.user.id; // ID del usuario autenticado
+        const { user_id } = req.body; // ID del usuario a asignar
+        const project = await Project.findByPk(id);
+
+        if (!user_id) {
+            return res.status(400).json({ error: "User ID is required in request body" });
+        }
+
+
+        if (project.lider_id && project.lider_id !== userId) {
+            return res.status(403).json({ error: "You are not authorized to assign users to tasks for this project" });
+        }
+
+        // Verificar si el usuario es miembro del proyecto
+        const projectUser = await ProjectUser.findOne({
+            where: {
+                project_id: id,
+                user_id: userId,
+                rol: {
+                    [Op.in]: ['OWNER', 'WOKER']
+                }
+            }
+        });
+
+        if (!projectUser) {
+            return res.status(403).json({ error: "You are not authorized to assign users to tasks for this project" });
+        }
+
+        // Verificar si el usuario a asignar es miembro del proyecto
+        const userProject = await ProjectUser.findOne({
+            where: {
+                project_id: projectUser.project_id,
+                user_id,
+                rol: {
+                    [Op.in]: ['OWNER', 'WOKER']
+                }
+            }
+        });
+
+        if (!userProject) {
+            return res.status(403).json({ error: "The user you are trying to assign is not a member of the project" });
+        }
+
+        // Verificar si la tarea existe
+        const task = await Task.findByPk(id);
+
+        if (!task) {
+            return res.status(404).json({ message: "Tarea no encontrada" });
+        }
+
+        // Asignar el usuario a la tarea
+        task.assigned_user_id = user_id;
+
+        res.json({ message: "Usuario asignado correctamente" });
+
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;
