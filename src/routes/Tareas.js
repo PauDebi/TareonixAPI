@@ -2,7 +2,7 @@ const express = require("express");
 const {auth} = require("../middleware/auth");
 const {Op} = require("sequelize");
 const router = express.Router();
-const {ProjectUser, Project, Task, TaskHistory} = require("../models/associations");
+const {ProjectUser, Project, Task, TaskHistory, User} = require("../models/associations");
 
 router.get('/:id', auth, async (req, res) => {
     try {
@@ -23,7 +23,21 @@ router.get('/:id', auth, async (req, res) => {
 
         // Obtener todas las tareas del proyecto
         const tasks = await Task.findAll({
-            where: { project_id: id }
+            where: { project_id: id },
+            include: [
+                {
+                    model: TaskHistory,
+                    as: 'history', // Alias para la relación
+                    attributes: ['id', 'action', 'action_date'],
+                    include: [
+                        {
+                            model: User,
+                            as: 'user', // Alias para la relación con el usuario
+                            attributes: ['id', 'name', 'email'] // Selecciona los campos que quieras
+                        }
+                    ]
+                }
+            ]
         });
 
         res.json({ tasks });
@@ -32,6 +46,8 @@ router.get('/:id', auth, async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+
 
 router.post('/:id', auth, async (req, res) => {
     try {
