@@ -8,7 +8,8 @@ create table users(
     name varchar(255) not null,
     email varchar(255) not null,
     password varchar(255) not null,
-    createdAt DATETIME NOT NULL
+    createdAt DATETIME NOT NULL,
+    isVerified boolean default false
 );
 
 create table projects(

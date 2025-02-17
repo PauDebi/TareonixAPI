@@ -4,6 +4,8 @@ const { auth, isAdmin } = require('../middleware/auth');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const router = express.Router();
+const nodemailer = require('nodemailer');
+const { v4: uuidv4 } = require('uuid');
 
 /**
  * @swagger
@@ -206,6 +208,17 @@ const router = express.Router();
  *                   example: "Invalid credentials"
  */
 
+// Configurar transporte de Nodemailer
+const transporter = nodemailer.createTransport({
+  host: 'smtp.hostinger.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+  });
+
 // Registra un usuari sense poders d'administrador
 router.post('/register', [
   body('email').isEmail(),
@@ -218,19 +231,57 @@ router.post('/register', [
       return res.status(400).json({ errors: errors.array() });
     }
 
+    const { email, password, name } = req.body;
+
     // Verificar si el email ya está registrado
-    const existingUser = await User.findOne({ where: { email: req.body.email } });
+    const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ error: 'El email ya está registrado' });
     }
 
-    // Crear usuario si no existe
-    const user = await User.create(req.body);
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    // Crear usuario sin verificar
+    const user = await User.create({ email, password, name, isVerified: false });
 
-    res.status(201).json({ user, token });
+    // Generar un token JWT de verificación con expiración de 1 hora
+    const verificationToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    // Enviar email de verificación
+    const verificationLink = `worldgames.es/api/auth/verify-email?token=${verificationToken}`;
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: user.email,
+      subject: 'Verifica tu cuenta',
+      html: `<p>Hola ${user.name},</p>
+             <p>Por favor, haz clic en el siguiente enlace para verificar tu cuenta:</p>
+             <a href="${verificationLink}">${verificationLink}</a>`
+    });
+
+    res.status(201).json({ message: 'Registro exitoso. Revisa tu email para verificar la cuenta.' });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Endpoint para verificar email con el JWT de verificación
+router.get('/verify-email', async (req, res) => {
+  try {
+    const { token } = req.query;
+
+    // Decodificar el token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findByPk(decoded.id);
+
+    if (!user) {
+      return res.status(400).json({ error: 'Token inválido o usuario no encontrado' });
+    }
+
+    // Marcar el usuario como verificado
+    user.isVerified = true;
+    await user.save();
+
+    res.json({ message: 'Email verificado con éxito. Ahora puedes iniciar sesión.' });
+  } catch (error) {
+    res.status(400).json({ error: 'Token inválido o expirado' });
   }
 });
 

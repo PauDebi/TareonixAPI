@@ -24,6 +24,10 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false
   },
+  isVerified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
   createdAt: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW

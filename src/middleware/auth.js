@@ -3,7 +3,6 @@ const User = require('../models/User');
 
 const auth = async (req, res, next) => {
   try {
-
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) {
       throw new Error();
@@ -14,6 +13,11 @@ const auth = async (req, res, next) => {
 
     if (!user) {
       throw new Error();
+    }
+
+    // Verificar si el usuario ha confirmado su email
+    if (!user.isVerified) {
+      return res.status(403).json({ error: 'Debes verificar tu email antes de acceder' });
     }
 
     req.user = user;
