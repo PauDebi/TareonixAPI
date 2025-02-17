@@ -2,6 +2,32 @@ const express = require('express');
 const User = require('../models/User');
 const { auth } = require("../middleware/auth");
 const router = express.Router();
+const fs = require('fs');
+const multer = require('multer');
+const path = require('path');
+
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');  // Carpeta donde se almacenarán las imágenes
+  },
+  filename: (req, file, cb) => {
+    const fileName = Date.now() + path.extname(file.originalname);  // Crear nombre único
+    cb(null, fileName);
+  }
+});
+
+const upload = multer({ storage });
+
+// Ruta para obtener la información del usuario (sin cambios)
+router.get('/', auth, async (req, res) => {
+  try {
+    const user = req.user;
+    res.json(user);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
 
 /**
  * @swagger
@@ -165,8 +191,90 @@ router.put('/', auth, async (req, res) => {
 router.delete('/', auth, async (req, res) => {
   try {
     const user = req.user;
+
+    // Eliminar la imagen de perfil si existe
+    if (user.profile_image) {
+      const imagePath = path.join(__dirname, '..', user.profile_image);  // Ruta completa del archivo
+      fs.unlink(imagePath, (err) => {
+        if (err) {
+          console.error('Error deleting profile image:', err);
+        }
+      });
+    }
+
     await user.destroy();
     res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Ruta para actualizar la imagen de perfil
+/**
+ * @swagger
+ * /api/user/profile-image:
+ *   put:
+ *     summary: Update user profile image
+ *     tags: [User]
+ *     description: Allows the user to update their profile image.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Profile image updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Profile image updated successfully"
+ *       400:
+ *         description: Error updating the profile image.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Error message"
+ */
+router.put('/profile-image', auth, upload.single('image'), async (req, res) => {
+  try {
+    const user = req.user;
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image uploaded' });
+    }
+
+    // Si el usuario ya tiene una imagen de perfil, eliminar la anterior
+    if (user.profile_image) {
+      const oldImagePath = path.join(__dirname, '..', user.profile_image);  // Ruta completa del archivo antiguo
+      // Verificar si el archivo existe y eliminarlo
+      fs.unlink(oldImagePath, (err) => {
+        if (err) {
+          console.error('Error deleting old profile image:', err);
+        }
+      });
+    }
+
+    // Guardar la ruta de la imagen en la base de datos
+    const imagePath = req.file.path; // Ruta completa de la imagen en el servidor
+
+    // Actualizar la imagen de perfil del usuario
+    await user.update({ profile_image: imagePath });
+    res.json({ message: 'Profile image updated successfully' });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

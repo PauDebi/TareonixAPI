@@ -9,7 +9,8 @@ create table users(
     email varchar(255) not null,
     password varchar(255) not null,
     createdAt DATETIME NOT NULL,
-    isVerified boolean default false
+    isVerified boolean default false,
+    profile_image VARCHAR(255) DEFAULT NULL
 );
 
 create table projects(
