@@ -1,11 +1,23 @@
 const express = require("express");
-const {auth} = require("../middleware/auth");
+const { auth } = require("../middleware/auth");
 const Project = require('../models/Project');
 const ProjectUser = require('../models/ProjectUser');
-const {Op} = require("sequelize");
+const { Op } = require("sequelize");
 const router = express.Router();
 
-
+/**
+ * @swagger
+ * /projects:
+ *   get:
+ *     summary: Obtener proyectos donde el usuario es líder o miembro
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de proyectos
+ *       500:
+ *         description: Error interno del servidor
+ */
 router.get('/', auth, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -33,6 +45,33 @@ router.get('/', auth, async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /projects:
+ *   post:
+ *     summary: Crear un nuevo proyecto
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: body
+ *         name: project
+ *         description: Datos del nuevo proyecto
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             name:
+ *               type: string
+ *             description:
+ *               type: string
+ *     responses:
+ *       201:
+ *         description: Proyecto creado exitosamente
+ *       400:
+ *         description: Datos faltantes en la solicitud
+ *       500:
+ *         description: Error interno del servidor
+ */
 router.post('/', auth, async (req, res) => {
     try {
         const { name, description } = req.body;
@@ -63,6 +102,39 @@ router.post('/', auth, async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /projects/{id}:
+ *   put:
+ *     summary: Actualizar un proyecto existente
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID del proyecto
+ *       - in: body
+ *         name: project
+ *         description: Datos a actualizar del proyecto
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             name:
+ *               type: string
+ *             description:
+ *               type: string
+ *     responses:
+ *       200:
+ *         description: Proyecto actualizado exitosamente
+ *       403:
+ *         description: El usuario no está autorizado a realizar esta acción
+ *       404:
+ *         description: Proyecto no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
 router.put('/:id', auth, async (req, res) => {
     try {
         const { id } = req.params;
@@ -99,6 +171,28 @@ router.put('/:id', auth, async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /projects/{id}:
+ *   delete:
+ *     summary: Eliminar un proyecto
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID del proyecto
+ *     responses:
+ *       200:
+ *         description: Proyecto eliminado exitosamente
+ *       403:
+ *         description: El usuario no está autorizado a eliminar este proyecto
+ *       404:
+ *         description: Proyecto no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
 router.delete('/:id', auth, async (req, res) => {
     try {
         const { id } = req.params;
@@ -133,7 +227,37 @@ router.delete('/:id', auth, async (req, res) => {
     }
 });
 
-
+/**
+ * @swagger
+ * /projects/{id}/add-user:
+ *   post:
+ *     summary: Agregar un usuario a un proyecto
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID del proyecto
+ *       - in: body
+ *         name: user
+ *         description: Datos del usuario a agregar
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             user_id:
+ *               type: string
+ *     responses:
+ *       201:
+ *         description: Usuario agregado exitosamente
+ *       403:
+ *         description: El usuario no está autorizado a agregar usuarios
+ *       400:
+ *         description: El usuario ya es miembro del proyecto
+ *       500:
+ *         description: Error interno del servidor
+ */
 router.post('/:id/add-user', auth, async (req, res) => {
     try {
         const { id } = req.params; // ID del proyecto
@@ -173,7 +297,6 @@ router.post('/:id/add-user', auth, async (req, res) => {
         });
 
         res.status(201).json({ message: "User added to project successfully" });
-
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

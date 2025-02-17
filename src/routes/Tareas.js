@@ -1,9 +1,79 @@
 const express = require("express");
-const {auth} = require("../middleware/auth");
-const {Op} = require("sequelize");
+const { auth } = require("../middleware/auth");
+const { Op } = require("sequelize");
 const router = express.Router();
-const {ProjectUser, Project, Task, TaskHistory, User} = require("../models/associations");
+const { ProjectUser, Project, Task, TaskHistory, User } = require("../models/associations");
 
+/**
+ * @swagger
+ * /api/project/{id}/tasks:
+ *   get:
+ *     summary: Get tasks for a project
+ *     tags: [Tasks]
+ *     description: Retrieve all tasks for a project that the authenticated user is a member of.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the project.
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: List of tasks for the project.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 tasks:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       name:
+ *                         type: string
+ *                         example: "Task Name"
+ *                       description:
+ *                         type: string
+ *                         example: "Task description"
+ *                       history:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: integer
+ *                               example: 1
+ *                             action:
+ *                               type: string
+ *                               example: "CREATED"
+ *                             action_date:
+ *                               type: string
+ *                               format: date-time
+ *                               example: "2025-02-17T00:00:00Z"
+ *                             user:
+ *                               type: object
+ *                               properties:
+ *                                 id:
+ *                                   type: integer
+ *                                   example: 1
+ *                                 name:
+ *                                   type: string
+ *                                   example: "John Doe"
+ *                                 email:
+ *                                   type: string
+ *                                   example: "user@example.com"
+ *       403:
+ *         description: User is not authorized to view tasks for this project.
+ *       500:
+ *         description: Internal server error.
+ */
 router.get('/:id', auth, async (req, res) => {
     try {
         const { id } = req.params; // ID del proyecto
@@ -47,8 +117,60 @@ router.get('/:id', auth, async (req, res) => {
     }
 });
 
-
-
+/**
+ * @swagger
+ * /api/project/{id}/tasks:
+ *   post:
+ *     summary: Create a new task for a project
+ *     tags: [Tasks]
+ *     description: Create a new task in a project, available to members of the project with the correct role.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the project.
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "New Task"
+ *               description:
+ *                 type: string
+ *                 example: "Task description here."
+ *     responses:
+ *       200:
+ *         description: Task created successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 task:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     name:
+ *                       type: string
+ *                       example: "New Task"
+ *                     description:
+ *                       type: string
+ *                       example: "Task description"
+ *       403:
+ *         description: User is not authorized to create tasks for this project.
+ *       500:
+ *         description: Internal server error.
+ */
 router.post('/:id', auth, async (req, res) => {
     try {
         const { id } = req.params; // ID del proyecto
@@ -87,14 +209,65 @@ router.post('/:id', auth, async (req, res) => {
             action_date: new Date()
         });
 
-
-
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
-}
-);
+});
 
+/**
+ * @swagger
+ * /api/project/{id}/tasks:
+ *   put:
+ *     summary: Update a task for a project
+ *     tags: [Tasks]
+ *     description: Update the details of an existing task in a project.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the task.
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Updated Task"
+ *               description:
+ *                 type: string
+ *                 example: "Updated description."
+ *     responses:
+ *       200:
+ *         description: Task updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 task:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     name:
+ *                       type: string
+ *                       example: "Updated Task"
+ *                     description:
+ *                       type: string
+ *                       example: "Updated description."
+ *       403:
+ *         description: User is not authorized to update tasks for this project.
+ *       500:
+ *         description: Internal server error.
+ */
 router.put('/:id', auth, async (req, res) => {
     try {
         const { id } = req.params; // ID de la tarea
@@ -143,6 +316,38 @@ router.put('/:id', auth, async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/project/{id}/tasks:
+ *   delete:
+ *     summary: Delete a task for a project
+ *     tags: [Tasks]
+ *     description: Delete a specific task from the project.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the task to delete.
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Task deleted successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Tarea eliminada correctamente"
+ *       403:
+ *         description: User is not authorized to delete tasks for this project.
+ *       500:
+ *         description: Internal server error.
+ */
 router.delete('/:id', auth, async (req, res) => {
     try {
         const { id } = req.params; // ID de la tarea
@@ -179,6 +384,50 @@ router.delete('/:id', auth, async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/project/{id}/tasks/asign-user-to:
+ *   post:
+ *     summary: Assign a user to a task
+ *     tags: [Tasks]
+ *     description: Assign a user to a task in the project.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the project.
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               user_id:
+ *                 type: integer
+ *                 example: 2
+ *     responses:
+ *       200:
+ *         description: User assigned to task successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Usuario asignado correctamente"
+ *       403:
+ *         description: User is not authorized to assign users to tasks for this project.
+ *       400:
+ *         description: Missing user ID in request body.
+ *       500:
+ *         description: Internal server error.
+ */
 router.post('/asign-user-to/:id', auth, async (req, res) => {
     try {
         const { id } = req.params; // ID del proyecto
@@ -189,7 +438,6 @@ router.post('/asign-user-to/:id', auth, async (req, res) => {
         if (!user_id) {
             return res.status(400).json({ error: "User ID is required in request body" });
         }
-
 
         if (project.lider_id && project.lider_id !== userId) {
             return res.status(403).json({ error: "You are not authorized to assign users to tasks for this project" });

@@ -70,79 +70,6 @@ const { v4: uuidv4 } = require('uuid');
 
 /**
  * @swagger
- * /api/auth/register-admin:
- *   post:
- *     summary: Register a new admin user
- *     tags: [Auth]
- *     description: Creates a new admin user account. Only accessible to admins.
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *                 example: "admin@example.com"
- *               password:
- *                 type: string
- *                 format: password
- *                 minLength: 6
- *                 example: "securePassword123"
- *               name:
- *                 type: string
- *                 example: "Admin User"
- *     responses:
- *       201:
- *         description: Admin user registered successfully.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 user:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                       example: 2
- *                     name:
- *                       type: string
- *                       example: "Admin User"
- *                     email:
- *                       type: string
- *                       example: "admin@example.com"
- *                     role:
- *                       type: string
- *                       example: "ADMIN"
- *       400:
- *         description: Validation error or user creation failed.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Error message"
- *       403:
- *         description: Forbidden. Only admins can create admin users.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Forbidden"
- */
-
-/**
- * @swagger
  * /api/auth/login:
  *   post:
  *     summary: Login a user
@@ -207,6 +134,76 @@ const { v4: uuidv4 } = require('uuid');
  *                   type: string
  *                   example: "Invalid credentials"
  */
+
+/**
+ * @swagger
+ * /api/auth/verify-email:
+ *   get:
+ *     summary: Verify the email address of a user
+ *     tags: [Auth]
+ *     description: Verifies the email address of the user using a JWT token.
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The verification token sent to the user's email
+ *     responses:
+ *       200:
+ *         description: Email verified successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Email verificado con éxito. Ahora puedes iniciar sesión."
+ *       400:
+ *         description: Invalid or expired token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Token inválido o expirado"
+ */
+
+/**
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Logout a user
+ *     tags: [Auth]
+ *     description: Logs out the user by invalidating the JWT token.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User logged out successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Logout exitoso"
+ *       401:
+ *         description: Unauthorized. No valid token provided.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Unauthorized"
+ */
+
 
 // Configurar transporte de Nodemailer
 const transporter = nodemailer.createTransport({
@@ -285,34 +282,6 @@ router.get('/verify-email', async (req, res) => {
   }
 });
 
-
-// Nova ruta per crear usuaris admin (només accessible per admins)
-router.post('/register-admin', [
-  auth,
-  isAdmin,
-  body('email').isEmail(),
-  body('password').isLength({ min: 6 }),
-  body('name').notEmpty()
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const userData = {
-      name: req.body.name,
-      email: req.body.email,
-      password: req.body.password,
-      role: 'ADMIN'
-    };
-
-    const user = await User.create(userData);
-    res.status(201).json({ user });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
 
 // Login per a qualsevol usuari, retorna un token per a realitzar les peticions protegides
 router.post('/login', async (req, res) => {

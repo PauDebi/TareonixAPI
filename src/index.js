@@ -1,67 +1,41 @@
-require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
-const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
-
-const sequelize = require('./config/database');
-require('./models/associations');
-
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users');
-const projectRoutes = require('./routes/Projects');
-const taskRoutes = require('./routes/Tareas');
-
+const swaggerUi = require('swagger-ui-express');
 const app = express();
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/projects', projectRoutes);
-app.use('/api/tasks', taskRoutes);
-
-// Swagger documentation
+// Definir la configuración de Swagger
 const swaggerOptions = {
-  definition: {
+  swaggerDefinition: {
     openapi: '3.0.0',
     info: {
-      title: 'Event Management API',
+      title: 'API de Proyectos',
       version: '1.0.0',
-      description: 'API for managing events and registrations'
-    },
-    servers: [
-      {
-        url: 'http://localhost:3000'
-      }
-    ],
-    tags: [
-      {
-        name: 'Auth',
-        description: 'Endpoints for user authentication and registration'
+      description: 'Documentación de la API de gestión de proyectos',
+      contact: {
+        name: 'Admin',
+        email: 'admin@worldgames.es',
       },
-      {
-        name: 'Events',
-        description: 'Endpoints for managing events'
-      }
-    ]
+    },
   },
-  apis: ['./src/routes/*.js']
+  apis: ['./src/routes/*.js'],
+
 };
 
+// Crear la especificación de Swagger
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
+
+// Rutas de la API (tu archivo de rutas)
+const projectRoutes = require('./routes/projects'); // Cambia la ruta si es diferente
+
+// Usar Swagger UI en la ruta '/api-docs'
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
+// Usar las rutas del proyecto
+app.use('/projects', projectRoutes);
 
-// Database sync and server start
+// Iniciar el servidor
 const PORT = process.env.PORT || 3000;
-
-sequelize.sync().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`Documentación Swagger disponible en http://localhost:${PORT}/api-docs`);
 });
-
