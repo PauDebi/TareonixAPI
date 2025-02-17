@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const DependsFromTask = sequelize.define('DependsFromTask', {
+const DependsFromTask = sequelize.define('dependsFromTask', {
     dependent_task: {
         type: DataTypes.CHAR(36),
         references: {

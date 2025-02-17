@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const TaskHistory = sequelize.define('TaskHistory', {
+const TaskHistory = sequelize.define('taskHistory', {
     id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,

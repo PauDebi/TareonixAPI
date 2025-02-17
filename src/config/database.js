@@ -1,7 +1,7 @@
 const { Sequelize } = require('sequelize');
 
 const sequelize = new Sequelize(
-  process.env.DB_NAME || 'tasklyDB',
+  process.env.DB_NAME || 'taskly_db',
   process.env.DB_USER || 'test',
   process.env.DB_PASSWORD || 'test',
   {
