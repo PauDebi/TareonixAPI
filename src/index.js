@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
+const path = require('path');
 
 const sequelize = require('./config/database');
 require('./models/associations');
@@ -17,6 +18,9 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
 
 // Routes
 app.use('/api/auth', authRoutes);

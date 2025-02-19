@@ -289,7 +289,11 @@ router.get('/verify-email', async (req, res) => {
     user.isVerified = true;
     await user.save();
 
-    res.json({ message: 'Email verificado con éxito. Ahora puedes iniciar sesión.' });
+    res.render('verify-email', {
+      message: 'Email verificado con éxito',
+      description: 'Ahora puedes iniciar sesión en tu cuenta.'
+    });
+
   } catch (error) {
     res.status(400).json({ error: 'Token inválido o expirado' });
   }
