@@ -19,6 +19,7 @@ const router = express.Router();
  *       500:
  *         description: Error interno del servidor
  */
+
 router.get('/', auth, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -33,18 +34,36 @@ router.get('/', auth, async (req, res) => {
             },
             include: [
                 {
-                    model: ProjectUser,
-                    as: 'project_users',
+                    model: User,
+                    as: 'users', // Alias que definimos en la relación
+                    through: { attributes: ['rol'] }, // Traemos solo el rol de la tabla intermedia
                     attributes: ['id', 'name', 'email', 'profile_image'] // Datos relevantes del usuario
                 }
             ]
         });
 
-        res.json({ projects });
+        // Formateamos la respuesta para estructurar mejor los datos
+        const formattedProjects = projects.map(project => ({
+            id: project.id,
+            name: project.name,
+            description: project.description,
+            lider_id: project.lider_id,
+            createdAt: project.createdAt,
+            users: project.users.map(user => ({
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                profile_image: user.profile_image,
+                role: user.ProjectUser.rol // Obtenemos el rol desde la tabla intermedia
+            }))
+        }));
+
+        res.json({ projects: formattedProjects });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
+
 
 /**
  * @swagger
