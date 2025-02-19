@@ -19,6 +19,8 @@ const router = express.Router();
  *       500:
  *         description: Error interno del servidor
  */
+const { Op } = require('sequelize');
+const { Project, ProjectUser, User } = require('../models');
 
 router.get('/', auth, async (req, res) => {
     try {
