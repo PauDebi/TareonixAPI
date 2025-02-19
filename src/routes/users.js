@@ -284,7 +284,7 @@ router.put('/profile-image', auth, upload.single('image'), async (req, res) => {
     }
 
     // Guardar la ruta de la imagen en la base de datos
-    const imagePath = req.file.path; // Ruta completa de la imagen en el servidor
+    const imagePath = "http://worldgames.es/" +req.file.path; // Ruta completa de la imagen en el servidor
 
     // Actualizar la imagen de perfil del usuario
     await user.update({ profile_image: imagePath });
