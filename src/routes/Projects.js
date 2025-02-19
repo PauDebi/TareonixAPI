@@ -2,6 +2,7 @@ const express = require("express");
 const { auth } = require("../middleware/auth");
 const Project = require('../models/Project');
 const ProjectUser = require('../models/ProjectUser');
+const User = require('../models/User');
 const { Op } = require("sequelize");
 const router = express.Router();
 
@@ -19,8 +20,6 @@ const router = express.Router();
  *       500:
  *         description: Error interno del servidor
  */
-const { Op } = require('sequelize');
-const { Project, ProjectUser, User } = require('../models');
 
 router.get('/', auth, async (req, res) => {
     try {
