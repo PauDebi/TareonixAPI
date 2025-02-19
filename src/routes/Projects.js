@@ -35,7 +35,7 @@ router.get('/', auth, async (req, res) => {
                 {
                     model: ProjectUser,
                     as: 'project_users',
-                    attributes: [] // No necesitamos traer datos extra de la tabla intermedia
+                    attributes: ['id', 'name', 'email', 'profile_image'] // Datos relevantes del usuario
                 }
             ]
         });
