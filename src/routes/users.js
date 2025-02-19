@@ -195,10 +195,10 @@ router.delete('/', auth, async (req, res) => {
   try {
     const user = req.user;
 
-    // Verificar si el usuario es líder de algún proyecto
+    // Verificar si el usuario es líder de algún proyecto y actualizar el lider_id a null
     const isLeader = await Project.findOne({ where: { lider_id: user.id } });
     if (isLeader) {
-      return res.status(400).json({ error: 'User is a leader of a project and cannot be deleted.' });
+      await isLeader.update({ lider_id: null });
     }
 
     // Eliminar relaciones en project_users
