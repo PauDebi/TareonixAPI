@@ -13,7 +13,7 @@ const { v4: uuidv4 } = require('uuid');
  *   post:
  *     summary: Register a new user
  *     tags: [Auth]
- *     description: Creates a new user account (non-admin) and returns a JWT token.
+ *     description: Creates a new non verified user and sends a verification email.
  *     requestBody:
  *       required: true
  *       content:
@@ -74,7 +74,7 @@ const { v4: uuidv4 } = require('uuid');
  *   post:
  *     summary: Login a user
  *     tags: [Auth]
- *     description: Authenticates a user and returns a JWT token.
+ *     description: Authenticates a user and returns all user info and JWT token to authenticate future requests.
  *     requestBody:
  *       required: true
  *       content:
@@ -110,6 +110,19 @@ const { v4: uuidv4 } = require('uuid');
  *                     email:
  *                       type: string
  *                       example: "user@example.com"
+ *                     password:
+ *                        type: hashed
+ *                        example: "$2a$10$eRSJCRugI3aIjkfow64Qo.7ZNN6LGqY5.bTeRdfFiOVickk5f6iY6"
+ *                     isVerified:
+ *                        type: boolean
+ *                        example: true
+ *                     profile_image:
+ *                        type: string
+ *                        example: "profile-image.jpg"
+ *                     createdAt:
+ *                        type: date
+ *                        example: "2021-08-25T18:30:00.000Z"
+ *
  *                 token:
  *                   type: string
  *                   example: "jwt-token-here"
@@ -141,7 +154,7 @@ const { v4: uuidv4 } = require('uuid');
  *   get:
  *     summary: Verify the email address of a user
  *     tags: [Auth]
- *     description: Verifies the email address of the user using a JWT token.
+ *     description: Verifies the email address of the user using a JWT token. (this endpoint should be accessed from the email link generated)
  *     parameters:
  *       - in: query
  *         name: token

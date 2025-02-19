@@ -1,5 +1,6 @@
 const express = require('express');
 const User = require('../models/User');
+const ProjectUser = require('../models/ProjectUser');
 const { auth } = require("../middleware/auth");
 const router = express.Router();
 const fs = require('fs');
@@ -35,7 +36,7 @@ router.get('/', auth, async (req, res) => {
  *   get:
  *     summary: Get user information
  *     tags: [User]
- *     description: Retrieve the details of the currently authenticated user.
+ *     description: Retrieve the details of the currently authenticated user with bearer token.
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -188,13 +189,23 @@ router.put('/', auth, async (req, res) => {
  *                   example: "Error message"
  */
 
+
 router.delete('/', auth, async (req, res) => {
   try {
     const user = req.user;
 
+    // Verificar si el usuario es líder de algún proyecto
+    const isLeader = await Project.findOne({ where: { lider_id: user.id } });
+    if (isLeader) {
+      return res.status(400).json({ error: 'User is a leader of a project and cannot be deleted.' });
+    }
+
+    // Eliminar relaciones en project_users
+    await ProjectUser.destroy({ where: { user_id: user.id } });
+
     // Eliminar la imagen de perfil si existe
     if (user.profile_image) {
-      const imagePath = path.join(__dirname, '..', user.profile_image);  // Ruta completa del archivo
+      const imagePath = path.join(__dirname, '..', user.profile_image);
       fs.unlink(imagePath, (err) => {
         if (err) {
           console.error('Error deleting profile image:', err);
@@ -202,7 +213,9 @@ router.delete('/', auth, async (req, res) => {
       });
     }
 
+    // Eliminar usuario
     await user.destroy();
+
     res.json({ message: 'User deleted successfully' });
   } catch (error) {
     res.status(400).json({ error: error.message });

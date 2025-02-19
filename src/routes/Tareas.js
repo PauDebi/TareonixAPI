@@ -6,7 +6,7 @@ const { ProjectUser, Project, Task, TaskHistory, User } = require("../models/ass
 
 /**
  * @swagger
- * /api/project/{id}/tasks:
+ * /api/tasks/{id}:
  *   get:
  *     summary: Get tasks for a project
  *     tags: [Tasks]
@@ -119,7 +119,7 @@ router.get('/:id', auth, async (req, res) => {
 
 /**
  * @swagger
- * /api/project/{id}/tasks:
+ * /api/tasks/{id}:
  *   post:
  *     summary: Create a new task for a project
  *     tags: [Tasks]
@@ -216,7 +216,7 @@ router.post('/:id', auth, async (req, res) => {
 
 /**
  * @swagger
- * /api/project/{id}/tasks:
+ * /api/tasks/{id}:
  *   put:
  *     summary: Update a task for a project
  *     tags: [Tasks]
@@ -318,7 +318,7 @@ router.put('/:id', auth, async (req, res) => {
 
 /**
  * @swagger
- * /api/project/{id}/tasks:
+ * /api/tasks/{id}:
  *   delete:
  *     summary: Delete a task for a project
  *     tags: [Tasks]
@@ -386,7 +386,7 @@ router.delete('/:id', auth, async (req, res) => {
 
 /**
  * @swagger
- * /api/project/{id}/tasks/asign-user-to:
+ * /api/tasks/{id}/asign-user-to:
  *   post:
  *     summary: Assign a user to a task
  *     tags: [Tasks]

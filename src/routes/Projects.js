@@ -7,9 +7,10 @@ const router = express.Router();
 
 /**
  * @swagger
- * /projects:
+ * /api/projects:
  *   get:
  *     summary: Obtener proyectos donde el usuario es líder o miembro
+ *     tags: [Projects]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -47,9 +48,10 @@ router.get('/', auth, async (req, res) => {
 
 /**
  * @swagger
- * /projects:
+ * /api/projects:
  *   post:
  *     summary: Crear un nuevo proyecto
+ *     tags: [Projects]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -104,9 +106,10 @@ router.post('/', auth, async (req, res) => {
 
 /**
  * @swagger
- * /projects/{id}:
+ * /api/projects/{id}:
  *   put:
  *     summary: Actualizar un proyecto existente
+ *     tags: [Projects]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -173,9 +176,10 @@ router.put('/:id', auth, async (req, res) => {
 
 /**
  * @swagger
- * /projects/{id}:
+ * /api/projects/{id}:
  *   delete:
  *     summary: Eliminar un proyecto
+ *     tags: [Projects]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -229,9 +233,10 @@ router.delete('/:id', auth, async (req, res) => {
 
 /**
  * @swagger
- * /projects/{id}/add-user:
+ * /api/projects/{id}/add-user:
  *   post:
  *     summary: Agregar un usuario a un proyecto
+ *     tags: [Projects]
  *     security:
  *       - bearerAuth: []
  *     parameters:
