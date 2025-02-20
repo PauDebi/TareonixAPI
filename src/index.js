@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
+const { limiter, slowDownMiddleware } = require('./middleware/rateLimiter');
 const path = require('path');
 
 const sequelize = require('./config/database');
@@ -18,6 +19,8 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(limiter);
+app.use(slowDownMiddleware);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -40,7 +43,8 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: 'worldgames.es/'
+        url: 'worldgames.es/',
+        description: 'El unico servidor, somos pobres'
       }
     ],
     tags: [

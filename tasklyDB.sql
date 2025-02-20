@@ -59,3 +59,12 @@ create table task_history (
     foreign key (task_id) references tasks (id),
     foreign key (user_id) references users (id)
 );
+
+SET GLOBAL event_scheduler = ON;
+-- Para eliminar usuarios no verificados en 1 hora
+CREATE EVENT delete_unverified_users
+    ON SCHEDULE EVERY 10 MINUTE
+    DO
+    DELETE FROM users
+    WHERE isVerified = FALSE
+      AND createdAt < NOW() - INTERVAL 1 HOUR;
