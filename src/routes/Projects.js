@@ -2,6 +2,7 @@ const express = require("express");
 const { auth } = require("../middleware/auth");
 const Project = require('../models/Project');
 const ProjectUser = require('../models/ProjectUser');
+const User = require('../models/User');
 const { Op } = require("sequelize");
 const router = express.Router();
 
@@ -19,32 +20,54 @@ const router = express.Router();
  *       500:
  *         description: Error interno del servidor
  */
+
 router.get('/', auth, async (req, res) => {
     try {
         const userId = req.user.id;
 
         // Buscar proyectos donde el usuario es líder o miembro
         const projects = await Project.findAll({
-            where: {
-                [Op.or]: [
-                    { lider_id: userId },
-                    { '$project_users.user_id$': userId }
-                ]
-            },
             include: [
                 {
-                    model: ProjectUser,
-                    as: 'project_users',
-                    attributes: [] // No necesitamos traer datos extra de la tabla intermedia
+                    model: User,
+                    as: 'users',
+                    through: { attributes: ['rol'] }, // Incluir solo el rol desde la tabla intermedia
+                    attributes: ['id', 'name', 'email', 'profile_image'],
+                    where: { id: userId }, // Filtrar por el usuario
+                    required: false // Permitir que también traiga proyectos sin miembros
                 }
-            ]
+            ],
+            where: {
+                [Op.or]: [
+                    { lider_id: userId }, // Proyectos donde es líder
+                    { '$users.id$': userId } // Proyectos donde es miembro
+                ]
+            }
         });
 
-        res.json({ projects });
+        // Formateamos la respuesta para estructurar mejor los datos
+        const formattedProjects = projects.map(project => ({
+            id: project.id,
+            name: project.name,
+            description: project.description,
+            lider_id: project.lider_id,
+            createdAt: project.createdAt,
+            users: project.users.map(user => ({
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                profile_image: user.profile_image,
+                role: user.ProjectUser?.rol // Obtener el rol desde la tabla intermedia
+            }))
+        }));
+
+        res.json({ projects: formattedProjects });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: error.message });
     }
 });
+
 
 /**
  * @swagger

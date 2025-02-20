@@ -265,6 +265,7 @@ router.delete('/', auth, async (req, res) => {
  *                   type: string
  *                   example: "Error message"
  */
+
 router.put('/profile-image', auth, upload.single('image'), async (req, res) => {
   try {
     const user = req.user;
