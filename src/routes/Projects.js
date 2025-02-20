@@ -54,10 +54,11 @@ router.get('/', auth, async (req, res) => {
             createdAt: project.createdAt,
             users: project.users.map(user => ({
                 id: user.id,
+                createdAt: user.createdAt,
                 name: user.name,
                 email: user.email,
                 profile_image: user.profile_image,
-                role: user.ProjectUser?.rol // Obtener el rol desde la tabla intermedia
+                isVerified: user.isVerified,
             }))
         }));
 

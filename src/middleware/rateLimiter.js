@@ -6,7 +6,7 @@ const { Redis } = require('ioredis');
 // Middleware para limitar solicitudes (previene DDOS)
 const limiter = rateLimit({
     windowMs: 1000, // 1 segundo
-    max: 5, // Máximo 5 peticiones por IP en 1 segundo
+    max: 20, // Máximo 5 peticiones por IP en 1 segundo
     handler: (req, res) => {
         res.status(429).json({ message: 'Demasiadas solicitudes, intenta más tarde.' });
     }
