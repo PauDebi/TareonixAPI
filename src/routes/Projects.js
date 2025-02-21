@@ -16,36 +16,81 @@ const router = express.Router();
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Lista de proyectos
+ *         description: Lista de proyectos obtenida correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 projects:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       lider_id:
+ *                         type: string
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                       users:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: string
+ *                             name:
+ *                               type: string
+ *                             email:
+ *                               type: string
+ *                             profile_image:
+ *                               type: string
+ *                             isVerified:
+ *                               type: boolean
+ *                             createdAt:
+ *                               type: string
+ *                               format: date-time
  *       500:
  *         description: Error interno del servidor
  */
+
 
 router.get('/', auth, async (req, res) => {
     try {
         const userId = req.user.id;
 
-        // Buscar proyectos donde el usuario es líder o miembro
+        // 1. Obtener los IDs de proyectos en los que el usuario es miembro
+        const memberProjects = await ProjectUser.findAll({
+            where: { user_id: userId },
+            attributes: ['project_id']
+        });
+        const memberProjectIds = memberProjects.map(mp => mp.project_id);
+
+        // 2. Buscar proyectos donde el usuario es líder o miembro
         const projects = await Project.findAll({
             include: [
                 {
                     model: User,
                     as: 'users',
-                    through: { attributes: ['rol'] }, // Incluir solo el rol desde la tabla intermedia
-                    attributes: ['id', 'name', 'email', 'profile_image'],
-                    where: { id: userId }, // Filtrar por el usuario
-                    required: false // Permitir que también traiga proyectos sin miembros
+                    through: { attributes: ['rol'] }, // Incluye solo el rol desde la tabla intermedia
+                    attributes: ['id', 'name', 'email', 'profile_image', 'isVerified', 'createdAt']
                 }
             ],
             where: {
                 [Op.or]: [
-                    { lider_id: userId }, // Proyectos donde es líder
-                    { '$users.id$': userId } // Proyectos donde es miembro
+                    { lider_id: userId },
+                    { id: { [Op.in]: memberProjectIds } }
                 ]
             }
         });
 
-        // Formateamos la respuesta para estructurar mejor los datos
+        // 3. Formatear la respuesta
         const formattedProjects = projects.map(project => ({
             id: project.id,
             name: project.name,
@@ -78,18 +123,17 @@ router.get('/', auth, async (req, res) => {
  *     tags: [Projects]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: body
- *         name: project
- *         description: Datos del nuevo proyecto
- *         required: true
- *         schema:
- *           type: object
- *           properties:
- *             name:
- *               type: string
- *             description:
- *               type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
  *     responses:
  *       201:
  *         description: Proyecto creado exitosamente
@@ -267,50 +311,42 @@ router.delete('/:id', auth, async (req, res) => {
  *       - in: path
  *         name: id
  *         required: true
- *         description: ID del proyecto
- *       - in: body
- *         name: user
- *         description: Datos del usuario a agregar
- *         required: true
  *         schema:
- *           type: object
- *           properties:
- *             user_id:
- *               type: string
+ *           type: string
+ *         description: ID del proyecto
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               user_email:
+ *                 type: string
  *     responses:
  *       201:
  *         description: Usuario agregado exitosamente
- *       403:
- *         description: El usuario no está autorizado a agregar usuarios
  *       400:
  *         description: El usuario ya es miembro del proyecto
+ *       403:
+ *         description: El usuario no está autorizado a agregar usuarios
  *       500:
  *         description: Error interno del servidor
  */
+
 router.post('/:id/add-user', auth, async (req, res) => {
     try {
         const { id } = req.params; // ID del proyecto
-        const { user_id } = req.body; // ID del usuario a agregar
+        const { user_email } = req.body; // ID del usuario a agregar
         const ownerId = req.user.id; // ID del usuario autenticado
 
-        // Verificar si el usuario autenticado es OWNER del proyecto
-        const projectOwner = await ProjectUser.findOne({
-            where: {
-                project_id: id,
-                user_id: ownerId,
-                rol: 'OWNER'  // Solo el OWNER puede añadir usuarios
-            }
-        });
-
-        if (!projectOwner) {
-            return res.status(403).json({ error: "You are not authorized to add users to this project" });
-        }
+        const user = await User.findOne({ where: { email: user_email } });
 
         // Verificar si el usuario ya está en el proyecto
         const existingMember = await ProjectUser.findOne({
             where: {
                 project_id: id,
-                user_id: user_id
+                user_id: user.id
             }
         });
 
@@ -320,9 +356,9 @@ router.post('/:id/add-user', auth, async (req, res) => {
 
         // Agregar usuario al proyecto con rol "READER"
         await ProjectUser.create({
-            user_id: user_id,
+            user_id: user.id,
             project_id: id,
-            rol: 'READER'
+            rol: 'WOKER'
         });
 
         res.status(201).json({ message: "User added to project successfully" });
