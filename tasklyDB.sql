@@ -68,3 +68,4 @@ CREATE EVENT delete_unverified_users
     DELETE FROM users
     WHERE isVerified = FALSE
       AND createdAt < NOW() - INTERVAL 1 HOUR;
+

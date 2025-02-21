@@ -65,25 +65,32 @@ router.get('/', auth, async (req, res) => {
     try {
         const userId = req.user.id;
 
-        // Buscar proyectos donde el usuario es líder o miembro
+        // 1. Obtener los IDs de proyectos en los que el usuario es miembro
+        const memberProjects = await ProjectUser.findAll({
+            where: { user_id: userId },
+            attributes: ['project_id']
+        });
+        const memberProjectIds = memberProjects.map(mp => mp.project_id);
+
+        // 2. Buscar proyectos donde el usuario es líder o miembro
         const projects = await Project.findAll({
             include: [
                 {
                     model: User,
                     as: 'users',
-                    through: { attributes: ['rol'] }, // Incluir solo el rol desde la tabla intermedia
+                    through: { attributes: ['rol'] }, // Incluye solo el rol desde la tabla intermedia
                     attributes: ['id', 'name', 'email', 'profile_image', 'isVerified', 'createdAt']
                 }
             ],
             where: {
                 [Op.or]: [
-                    { lider_id: userId },  // Si el usuario es líder del proyecto
-                    { '$users.id$': userId } // O si es miembro del proyecto
+                    { lider_id: userId },
+                    { id: { [Op.in]: memberProjectIds } }
                 ]
             }
         });
 
-        // Formateamos la respuesta para estructurar mejor los datos
+        // 3. Formatear la respuesta
         const formattedProjects = projects.map(project => ({
             id: project.id,
             name: project.name,
@@ -338,7 +345,7 @@ router.post('/:id/add-user', auth, async (req, res) => {
         // Verificar si el usuario ya está en el proyecto
         const existingMember = await ProjectUser.findOne({
             where: {
-                id: id,
+                project_id: id,
                 user_id: user.id
             }
         });
