@@ -243,6 +243,9 @@ router.post('/:id', auth, async (req, res) => {
  *               description:
  *                 type: string
  *                 example: "Updated description."
+ *               status:
+ *                  type: string
+ *                  example: "TO_DO"
  *     responses:
  *       200:
  *         description: Task updated successfully.
@@ -294,10 +297,11 @@ router.put('/:id', auth, async (req, res) => {
         }
 
         // Actualizar la tarea
-        const { name, description } = req.body;
+        const { name, description, status } = req.body;
 
         task.name = name || task.name;
         task.description = description || task.description;
+        task.status = status || task.status;
 
         await task.save();
 

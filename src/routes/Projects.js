@@ -331,4 +331,80 @@ router.post('/:id/add-user', auth, async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/projects/{id}/remove-user:
+ *   delete:
+ *     summary: Eliminar un usuario de un proyecto
+ *     tags: [Projects]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID del proyecto
+ *       - in: body
+ *         name: user_email
+ *         description: Datos del usuario a eliminar
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             user_email:
+ *               type: string
+ *     responses:
+ *       200:
+ *         description: Usuario eliminado exitosamente
+ *       403:
+ *         description: El usuario no está autorizado a eliminar usuarios
+ *       404:
+ *         description: Usuario no encontrado en el proyecto
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.delete('/:id/remove-user', auth, async (req, res) => {
+    try {
+        const { id } = req.params; // ID del proyecto
+        const { user_email } = req.body; // ID del usuario a eliminar
+        const ownerId = req.user.id; // ID del usuario autenticado
+
+        // Buscar el usuario por email
+        const user = await User.findOne({
+            where: { email: user_email }
+        });
+
+        // Verificar si el usuario autenticado esta en el proyecto
+        const projectOwner = await ProjectUser.findOne({
+            where: {
+                project_id: id,
+                user_id: ownerId
+            }
+        });
+
+        if (!projectOwner) {
+            return res.status(403).json({ error: "You are not authorized to remove users from this project" });
+        }
+
+        // Verificar si el usuario está en el proyecto
+        const existingMember = await ProjectUser.findOne({
+            where: {
+                project_id: id,
+                user_id: user.id
+            }
+        });
+
+        if (!existingMember) {
+            return res.status(404).json({ error: "User not found in this project" });
+        }
+
+        // Eliminar usuario del proyecto
+        await existingMember.destroy();
+
+        res.json({ message: "User removed from project successfully" });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;

@@ -22,6 +22,11 @@ const Task = sequelize.define('task', {
     assigned_user_id: {
         type: DataTypes.UUID,
     },
+    status : {
+        type: DataTypes.ENUM('TO_DO', 'IN_PROGRESS', 'DONE'),
+        defaultValue: 'TO_DO',
+        allowNull: false,
+    },
 
 }
     , {

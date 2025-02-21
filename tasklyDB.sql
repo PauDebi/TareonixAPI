@@ -37,6 +37,7 @@ create table tasks(
     description varchar(255) not null,
     project_id char(36) not null,
     assigned_user_id char(36),
+    status enum('TO_DO','IN_PROGRESS','DONE') default 'TO_DO',
     
     foreign key (assigned_user_id) references users (id),
     foreign key (project_id) references projects (id)
@@ -68,3 +69,10 @@ CREATE EVENT delete_unverified_users
     DELETE FROM users
     WHERE isVerified = FALSE
       AND createdAt < NOW() - INTERVAL 1 HOUR;
+
+INSERT INTO users (id, name, email, password, createdAt, isVerified)
+VALUES 
+    ('1dbe39dd-cb2e-4d1d-b571-4f275149d9c7', 'Pau', 'paudebionneferrer@gmail.com', '$2a$10$FiFWDzNfXgB4i2dXoKU1yuLMNfnXbUlqF7VMn7jP5hYWwUG28GUkm', '2021-06-01 00:00:00', true),
+    ('4ac5953b-e2d9-4d35-9c6b-b33c3c883cb3', 'Paco', 'predatorpk25@gmail.com', '$2a$10$MxqcQ7JQEhd4y1mPmbOSU.ZIhQCKjUbF8JYJitZTxESMiDM1LIoc2', '2021-06-01 00:00:00', true),
+    ('868ce5d0-4e77-406a-8500-6c65856d9975', 'paquete', 'joseantonioreyessolera@gmail.com', '$2a$10$iZ.JiDnSxdrwYXghtISJGuMPF.zZPeIvJ6AjZTU9p1wtY6dLqPS3K', '2021-06-01 00:00:00', true)
+;
