@@ -434,23 +434,27 @@ router.delete('/:id', auth, async (req, res) => {
  */
 router.post('/asign-user-to/:id', auth, async (req, res) => {
     try {
-        const { id } = req.params; // ID del proyecto
+        const { id } = req.params; // ID de la tarea
         const userId = req.user.id; // ID del usuario autenticado
         const { user_id } = req.body; // ID del usuario a asignar
-        const project = await Project.findByPk(id);
-
         if (!user_id) {
             return res.status(400).json({ error: "User ID is required in request body" });
         }
 
-        if (project.lider_id && project.lider_id !== userId) {
-            return res.status(403).json({ error: "You are not authorized to assign users to tasks for this project" });
+        const task = await Task.findByPk(id);
+        if (!task) {
+            return res.status(404).json({ message: "Tarea no encontrada" });
+        }
+
+        const project = await Project.findByPk(task.project_id);
+        if (!project) {
+            return res.status(404).json({ message: "Proyecto no encontrado (wtf)" });
         }
 
         // Verificar si el usuario es miembro del proyecto
         const projectUser = await ProjectUser.findOne({
             where: {
-                project_id: id,
+                project_id: project.id,
                 user_id: userId,
                 rol: {
                     [Op.in]: ['OWNER', 'WOKER']
@@ -475,13 +479,6 @@ router.post('/asign-user-to/:id', auth, async (req, res) => {
 
         if (!userProject) {
             return res.status(403).json({ error: "The user you are trying to assign is not a member of the project" });
-        }
-
-        // Verificar si la tarea existe
-        const task = await Task.findByPk(id);
-
-        if (!task) {
-            return res.status(404).json({ message: "Tarea no encontrada" });
         }
 
         // Asignar el usuario a la tarea
